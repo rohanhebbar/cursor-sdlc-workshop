@@ -58,11 +58,18 @@
   - Favorite cuisines (multi-select)
   - Price comfort (cheap / moderate / premium)
   - Vibe preference (casual / date night / group-friendly)
+  - Dietary priorities (multi-select: vegetarian-friendly, vegan options, gluten-free — optional “any” if none)
+  - Noise level (quiet / moderate / lively)
+  - Outdoor seating (prefer / no preference / avoid outdoor-only days)
+  - Kid-friendly (yes / no preference)
 - A basic "taste history" section where the user can mark a few places as "liked"
 - A visible recommendation score for each restaurant based on:
   - Cuisine match
   - Price match
   - Vibe match
+  - Dietary match (when the user selects dietary filters)
+  - Noise match
+  - Outdoor / kid-friendly match (when the user sets those preferences)
   - Bonus points if similar to liked places
 - A "Top 3 For You" area that surfaces the highest-scoring matches
 
@@ -80,7 +87,7 @@
 > Plan out the features you want to add after the MVP is working. Each feature should be in its own component file to keep things organized.
 
 ### Feature 1: _Preference Panel_
-- **Description:** Lets the user choose cuisines, preferred price level, and vibe to personalize recommendation scoring.
+- **Description:** Lets the user choose cuisines, price, vibe, dietary filters, noise, outdoor seating, and kid-friendly options to personalize scoring.
 - **Files to create:** _`src/components/PreferencePanel.jsx`_
 
 ### Feature 2: _Restaurant Rank List_
