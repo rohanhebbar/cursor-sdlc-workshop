@@ -5,39 +5,123 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Brick Breaker</title>
     <style>
+      :root {
+        --bg: #0e1118;
+        --panel: #161b26;
+        --panel-border: rgba(232, 234, 242, 0.12);
+        --text: #e8eaf2;
+        --muted: rgba(232, 234, 242, 0.65);
+        --accent: #7cb7ff;
+      }
       body {
         margin: 0;
-        background: #12141c;
-        color: #e8eaf2;
+        background: radial-gradient(ellipse 120% 80% at 50% -20%, #1a2744 0%, var(--bg) 55%);
+        color: var(--text);
         font-family: ui-sans-serif, system-ui, sans-serif;
+        min-height: 100vh;
         display: flex;
         justify-content: center;
-        align-items: center;
-        min-height: 100vh;
+        align-items: flex-start;
+        padding: 24px 16px 32px;
+        box-sizing: border-box;
       }
-      .wrap {
+      .layout {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        align-items: flex-start;
+        justify-content: center;
+        max-width: 900px;
+      }
+      .game-column {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 10px;
         align-items: center;
       }
       canvas {
         background: #0f1628;
-        border: 2px solid rgba(232, 234, 242, 0.2);
-        border-radius: 6px;
+        border: 2px solid var(--panel-border);
+        border-radius: 8px;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
       }
       .hint {
         font-size: 13px;
-        opacity: 0.85;
+        color: var(--muted);
         text-align: center;
         max-width: 480px;
+        margin: 0;
+      }
+      .scoreboard {
+        width: 220px;
+        min-height: 200px;
+        padding: 16px 18px;
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        border-radius: 10px;
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.25);
+      }
+      .scoreboard h2 {
+        margin: 0 0 12px;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .stat {
+        font-size: 15px;
+        margin-bottom: 8px;
+        line-height: 1.35;
+      }
+      .stat span {
+        color: var(--accent);
+        font-variant-numeric: tabular-nums;
+      }
+      .scoreboard h3 {
+        margin: 16px 0 8px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .scoreboard ol {
+        margin: 0;
+        padding-left: 1.25rem;
+        font-size: 14px;
+        line-height: 1.55;
+        color: var(--text);
+      }
+      .scoreboard li.empty {
+        color: var(--muted);
+      }
+      .status {
+        margin: 16px 0 0;
+        padding-top: 14px;
+        border-top: 1px solid var(--panel-border);
+        font-size: 14px;
+        line-height: 1.45;
+        color: var(--accent);
+        min-height: 2.8em;
       }
     </style>
   </head>
   <body>
-    <div class="wrap">
-      <canvas id="game" width="480" height="360" tabindex="0" aria-label="Brick Breaker"></canvas>
-      <p class="hint">← → or A D · Space start/restart · mouse moves paddle</p>
+    <div class="layout">
+      <div class="game-column">
+        <canvas id="game" width="480" height="360" tabindex="0" aria-label="Brick Breaker"></canvas>
+        <p class="hint">← → or A D · Space start/restart · mouse moves paddle</p>
+      </div>
+      <aside class="scoreboard" aria-label="Scoreboard">
+        <h2>Session</h2>
+        <div class="stat">Score: <span id="hud-score">—</span></div>
+        <div class="stat">Try: <span id="hud-try">—</span></div>
+        <div class="stat">Next try: <span id="hud-next">—</span></div>
+        <h3>Top 5 (score @ try)</h3>
+        <ol id="hud-top" aria-live="polite"></ol>
+        <p id="hud-status" class="status" aria-live="polite">Press Space to Start</p>
+      </aside>
     </div>
     <script>
       (function () {
@@ -47,23 +131,76 @@
         const H = canvas.height;
 
         const BALL_R = 6;
-        const BALL_SPEED = 5;
+        const BALL_SPEED = 3.4;
         const PADDLE_W = 80;
         const PADDLE_H = 12;
         const PADDLE_Y = H - 36;
-        const PADDLE_SPEED = 8;
+        const PADDLE_SPEED = 5.5;
+        /** How much paddle edge curves the ball (lower = gentler) */
+        const PADDLE_ENGLISH = 1.6;
         const COLS = 5;
         const ROWS = 3;
         const PAD = 8;
-        const TOP = 48;
+        const TOP = 28;
         const GAP = 6;
+
+        /** "Neon dusk" — top = sunset, mid = violet, bottom = deep sea */
+        const BRICK_ROW_COLORS = ["#ff6b6b", "#a55eea", "#26de81"];
+
+        const LS_TOP = "brickBreaker_top5";
+        const LS_TRY = "brickBreaker_gameTry";
+
+        /** @type {{ score: number; try: number }[]} */
+        let topScores = [];
+        /** Games ever started (persisted); current round try equals this value while playing. */
+        let gameTry = 0;
+        let currentGameTry = 0;
 
         let mode = "ready";
         let score = 0;
         const keys = { left: false, right: false };
 
+        function loadTopScores() {
+          try {
+            const raw = localStorage.getItem(LS_TOP);
+            if (!raw) return [];
+            const parsed = JSON.parse(raw);
+            return Array.isArray(parsed)
+              ? parsed
+                  .filter((e) => e && typeof e.score === "number" && typeof e.try === "number")
+                  .slice(0, 5)
+              : [];
+          } catch {
+            return [];
+          }
+        }
+
+        function saveTopScores(list) {
+          localStorage.setItem(LS_TOP, JSON.stringify(list.slice(0, 5)));
+          topScores = list.slice(0, 5);
+        }
+
+        function loadGameTry() {
+          const n = parseInt(localStorage.getItem(LS_TRY) || "0", 10);
+          return Number.isFinite(n) && n >= 0 ? n : 0;
+        }
+
+        function saveGameTry(n) {
+          localStorage.setItem(LS_TRY, String(n));
+          gameTry = n;
+        }
+
+        function recordHighScore(finalScore, tryNum) {
+          const merged = [...topScores, { score: finalScore, try: tryNum }];
+          merged.sort((a, b) => b.score - a.score || b.try - a.try);
+          saveTopScores(merged.slice(0, 5));
+        }
+
+        topScores = loadTopScores();
+        gameTry = loadGameTry();
+
         const paddle = { x: W / 2 - PADDLE_W / 2, y: PADDLE_Y, w: PADDLE_W, h: PADDLE_H };
-        const ball = { x: W / 2, y: PADDLE_Y - BALL_R - 2, r: BALL_R, vx: 2, vy: -BALL_SPEED };
+        const ball = { x: W / 2, y: PADDLE_Y - BALL_R - 2, r: BALL_R, vx: 1.2, vy: -BALL_SPEED };
         let bricks = [];
 
         function buildBricks() {
@@ -78,6 +215,7 @@
                 y: TOP + row * (bh + GAP),
                 w: bw,
                 h: bh,
+                row,
                 alive: true,
               });
             }
@@ -92,7 +230,7 @@
           paddle.x = W / 2 - PADDLE_W / 2;
           ball.x = paddle.x + PADDLE_W / 2;
           ball.y = paddle.y - BALL_R - 2;
-          ball.vx = 2;
+          ball.vx = 1.2;
           ball.vy = -BALL_SPEED;
           const m = Math.hypot(ball.vx, ball.vy) || 1;
           ball.vx = (ball.vx / m) * BALL_SPEED;
@@ -100,6 +238,9 @@
         }
 
         function startOrRestart() {
+          gameTry += 1;
+          saveGameTry(gameTry);
+          currentGameTry = gameTry;
           buildBricks();
           score = 0;
           mode = "playing";
@@ -135,7 +276,7 @@
           ball.vy *= -1;
           const cx = px + pw / 2;
           const offset = (ball.x - cx) / (pw / 2);
-          ball.vx += offset * 3;
+          ball.vx += offset * PADDLE_ENGLISH;
           const sp = Math.hypot(ball.vx, ball.vy) || 1;
           ball.vx = (ball.vx / sp) * BALL_SPEED;
           ball.vy = (ball.vy / sp) * BALL_SPEED;
@@ -184,10 +325,55 @@
             if (brickHit(bricks[i])) break;
           }
           if (aliveCount() === 0) {
+            recordHighScore(score, currentGameTry);
             mode = "won";
             return;
           }
-          if (ball.y - ball.r > H) mode = "lost";
+          if (ball.y - ball.r > H) {
+            recordHighScore(score, currentGameTry);
+            mode = "lost";
+          }
+        }
+
+        const elScore = document.getElementById("hud-score");
+        const elTry = document.getElementById("hud-try");
+        const elNext = document.getElementById("hud-next");
+        const elTop = document.getElementById("hud-top");
+        const elStatus = document.getElementById("hud-status");
+
+        function updateHud() {
+          const nextTry = gameTry + 1;
+          if (mode === "playing") {
+            elScore.textContent = String(score);
+            elTry.textContent = String(currentGameTry);
+            elNext.textContent = String(nextTry);
+          } else if (mode === "ready") {
+            elScore.textContent = "—";
+            elTry.textContent = "—";
+            elNext.textContent = String(nextTry);
+          } else {
+            elScore.textContent = String(score);
+            elTry.textContent = String(currentGameTry);
+            elNext.textContent = String(nextTry);
+          }
+
+          elTop.replaceChildren();
+          for (let i = 0; i < 5; i++) {
+            const li = document.createElement("li");
+            const entry = topScores[i];
+            if (entry) {
+              li.textContent = entry.score + " @ try " + entry.try;
+            } else {
+              li.textContent = "—";
+              li.className = "empty";
+            }
+            elTop.appendChild(li);
+          }
+
+          if (mode === "ready") elStatus.textContent = "Press Space to Start";
+          else if (mode === "won") elStatus.textContent = "You Win — Press Space to Restart";
+          else if (mode === "lost") elStatus.textContent = "Game Over — Press Space to Restart";
+          else elStatus.textContent = "Clear all bricks!";
         }
 
         function draw() {
@@ -195,8 +381,10 @@
           ctx.fillRect(0, 0, W, H);
           for (const b of bricks) {
             if (!b.alive) continue;
-            ctx.fillStyle = "#5a6a8a";
+            ctx.fillStyle = BRICK_ROW_COLORS[b.row % BRICK_ROW_COLORS.length];
             ctx.fillRect(b.x, b.y, b.w, b.h);
+            ctx.strokeStyle = "rgba(0,0,0,0.2)";
+            ctx.strokeRect(b.x + 0.5, b.y + 0.5, b.w - 1, b.h - 1);
           }
           ctx.fillStyle = "#7cb7ff";
           ctx.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
@@ -205,15 +393,7 @@
           ctx.fillStyle = "#f0ebe3";
           ctx.fill();
 
-          ctx.fillStyle = "#e8eaf2";
-          ctx.font = "16px sans-serif";
-          ctx.textAlign = "left";
-          ctx.fillText("Score: " + score, 10, 24);
-          ctx.font = "14px sans-serif";
-          ctx.textAlign = "center";
-          if (mode === "ready") ctx.fillText("Press Space to Start", W / 2, H / 2);
-          else if (mode === "won") ctx.fillText("You Win — Press Space to Restart", W / 2, H / 2);
-          else if (mode === "lost") ctx.fillText("Game Over — Press Space to Restart", W / 2, H / 2);
+          updateHud();
         }
 
         function loop() {
