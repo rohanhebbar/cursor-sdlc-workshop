@@ -1,6 +1,6 @@
 ---
 name: project-creation
-description: Creates and repairs SDLC workshop participant project folders under `projects/<github-username>/` by copying `projects/project_template/` safely (no overwrites). When to use: when the user asks to create their project folder, set up their workshop project, or when `projects/<username>/` is missing/empty/incomplete.
+description: Creates and repairs SDLC workshop participant project folders under `projects/<github-username>/` by copying `projects/project_template/` safely (no overwrites). Ensures `base_mvp/.gitignore` exists so `node_modules` and build artifacts are not committed. When to use: when the user asks to create their project folder, set up their workshop project, or when `projects/<username>/` is missing/empty/incomplete.
 ---
 
 # Project Creation (SDLC Workshop)
@@ -15,6 +15,7 @@ Activate whenever the user asks to:
 ## Source of truth
 
 - Follow `projects/README.md` (this repo) for the expected workshop folder shape.
+- **Active** participant work lives at `projects/<github-username>/` (created from `projects/project_template/`). **Retired** or archived cohort trees may live under `projects/_archive/<github-username>/`; do not copy from `_archive/` as a template—always use `project_template/`.
 
 ## Create or repair `projects/<github-username>/` (template-driven)
 
@@ -54,8 +55,20 @@ After copying, confirm the template actually landed:
 - `test -f "projects/<github-username>/prd.md"`
 - `test -f "projects/<github-username>/github_command_cheatsheet.md"`
 - `test -f "projects/<github-username>/base_mvp/README.md"`
+- `test -f "projects/<github-username>/base_mvp/.gitignore"`
 
 If any check fails, treat it as **not done** and repair by copying again (or copying missing files).
+
+### 3b) `.gitignore` and dependency folders (required for new / scaffolded apps)
+
+**Goal**: `node_modules`, build output, caches, and secrets never get committed.
+
+- The template includes `base_mvp/.gitignore` with common Node/Vite ignores (`node_modules`, `dist`, logs, editor junk). **Do not skip copying it.**
+- If the participant (or you) runs `npm create vite@latest`, `npm install`, or similar **inside** `base_mvp/`:
+  - Ensure a `.gitignore` exists there (copy from `projects/project_template/base_mvp/.gitignore` if missing).
+  - If the tool generated its own `.gitignore`, keep it—verify it includes at least `node_modules/` and typical build dirs (`dist`, `.vite`, etc.).
+- The repo root `.gitignore` also ignores `**/node_modules/` workshop-wide; participant-level `.gitignore` is still required so local `git status` stays clean and tools behave predictably.
+- After `npm install`, run `git status` from the repo root: `node_modules` (and similar) should be ignored, not listed as untracked files to add. Never `git add` under `node_modules/`.
 
 ### 4) Safety / idempotency rules
 

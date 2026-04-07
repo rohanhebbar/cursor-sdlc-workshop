@@ -41,11 +41,11 @@
 | **Cars** | A simple **car** | 6 |
 | **Houses** | A cozy **house** | 6 |
 
-Each lesson uses **progressive SVG** diagrams (each step adds to the picture). The **first step** often shows a **light construction** outline (dashed); later steps finalize the drawing. Authoring notes: [`base_mvp/src/data/strokeOrders.md`](projects/melissagannes/base_mvp/src/data/strokeOrders.md).
+Each lesson uses **progressive SVG** diagrams (each step adds to the picture). The **first step** often shows a **light construction** outline (dashed); later steps finalize the drawing. Authoring notes: [`base_mvp/src/data/strokeOrders.md`](projects/_archive/melissagannes/base_mvp/src/data/strokeOrders.md).
 
-Optional **Figma / Illustrator** exports: drop files at `base_mvp/public/steps/<lessonId>/<stepIndex>.svg` (e.g. [`public/steps/cat/0.svg`](projects/melissagannes/base_mvp/public/steps/cat/0.svg)). The app loads them via [`StepDiagramLoader.jsx`](projects/melissagannes/base_mvp/src/components/StepDiagramLoader.jsx); if a file is missing, it falls back to inline [`StepDiagram.jsx`](projects/melissagannes/base_mvp/src/components/StepDiagram.jsx). Log PD/CC0 references in [`docs/image-sources.md`](projects/melissagannes/docs/image-sources.md).
+Optional **Figma / Illustrator** exports: drop files at `base_mvp/public/steps/<lessonId>/<stepIndex>.svg` (e.g. [`public/steps/cat/0.svg`](projects/_archive/melissagannes/base_mvp/public/steps/cat/0.svg)). The app loads them via [`StepDiagramLoader.jsx`](projects/_archive/melissagannes/base_mvp/src/components/StepDiagramLoader.jsx); if a file is missing, it falls back to inline [`StepDiagram.jsx`](projects/_archive/melissagannes/base_mvp/src/components/StepDiagram.jsx). Log PD/CC0 references in [`docs/image-sources.md`](projects/_archive/melissagannes/docs/image-sources.md).
 
-**Step hint images** (optional reference photos or art in the right panel): put files under [`base_mvp/public/images/hints/<lessonId>/`](projects/melissagannes/base_mvp/public/images/hints/README.md) as `<stepIndex>.svg` (or `.png` / `.jpg`), or set `hintImage` on a step in `lessons.js`. Loaded by [`StepHintImage.jsx`](projects/melissagannes/base_mvp/src/components/StepHintImage.jsx); if nothing loads, the hint block is omitted.
+**Step hint images** (optional reference photos or art in the right panel): put files under [`base_mvp/public/images/hints/<lessonId>/`](projects/_archive/melissagannes/base_mvp/public/images/hints/README.md) as `<stepIndex>.svg` (or `.png` / `.jpg`), or set `hintImage` on a step in `lessons.js`. Loaded by [`StepHintImage.jsx`](projects/_archive/melissagannes/base_mvp/src/components/StepHintImage.jsx); if nothing loads, the hint block is omitted.
 
 ### Search: “Find something to draw”
 - Search box filters lessons by **title**, **keyword** lists (e.g. cat, kitty, car, house), and **words inside step instructions** (e.g. whisker, pencil).

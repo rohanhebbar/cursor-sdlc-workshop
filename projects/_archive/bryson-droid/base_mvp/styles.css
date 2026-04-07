@@ -154,6 +154,43 @@ body {
   line-height: 1.1;
 }
 
+.matches-review-controls {
+  display: grid;
+  justify-items: end;
+  gap: 10px;
+}
+
+.review-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(23, 107, 73, 0.08);
+}
+
+.review-tab {
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: transparent;
+  color: #5f685f;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease, transform 120ms ease;
+}
+
+.review-tab:hover {
+  transform: translateY(-1px);
+}
+
+.review-tab.is-active {
+  background: rgba(23, 107, 73, 0.12);
+  color: var(--green);
+}
+
 .section-kicker {
   margin: 0 0 6px;
   color: #8a8d4b;
@@ -395,7 +432,7 @@ body {
 
 .match-item {
   display: grid;
-  grid-template-columns: 48px 1fr;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
   gap: 12px;
   align-items: center;
   padding: 14px;
@@ -403,6 +440,11 @@ body {
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(23, 107, 73, 0.08);
   box-shadow: 0 10px 22px rgba(28, 35, 30, 0.06);
+}
+
+.match-item-passed {
+  border-color: rgba(242, 111, 99, 0.16);
+  background: linear-gradient(180deg, rgba(255, 237, 235, 0.85), rgba(255, 255, 255, 0.92));
 }
 
 .match-avatar {
@@ -431,6 +473,24 @@ body {
   color: #58655e;
   line-height: 1.45;
   font-size: 0.92rem;
+}
+
+.match-action-button {
+  border: 1px solid rgba(23, 107, 73, 0.14);
+  border-radius: 999px;
+  padding: 9px 12px;
+  background: rgba(23, 107, 73, 0.08);
+  color: var(--green);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.match-item-passed .match-action-button {
+  border-color: rgba(242, 111, 99, 0.16);
+  background: rgba(242, 111, 99, 0.1);
+  color: #a5443b;
 }
 
 .empty-state {
@@ -503,6 +563,10 @@ body {
     justify-content: flex-start;
   }
 
+  .matches-review-controls {
+    justify-items: start;
+  }
+
   .profile-card,
   .done-state {
     min-height: 520px;
@@ -511,5 +575,14 @@ body {
   .icon-button {
     width: 84px;
     height: 84px;
+  }
+
+  .match-item {
+    grid-template-columns: 48px 1fr;
+  }
+
+  .match-action-button {
+    grid-column: 1 / -1;
+    justify-self: flex-start;
   }
 }

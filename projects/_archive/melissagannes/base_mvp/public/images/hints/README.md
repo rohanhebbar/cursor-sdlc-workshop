@@ -23,4 +23,4 @@ In `lessons.js`, any step can set:
 
 ## Rights
 
-Use only images you may ship. Log sources in `projects/melissagannes/docs/image-sources.md` when using references.
+Use only images you may ship. Log sources in `projects/_archive/melissagannes/docs/image-sources.md` when using references.
