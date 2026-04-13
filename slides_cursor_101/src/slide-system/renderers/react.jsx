@@ -1042,6 +1042,7 @@ function renderMediaSlide(slide, fullBleed = false) {
 function renderContextSplit(slide) {
   const accent = toneColor(slide.phase?.tone ?? slide.tone ?? 'develop')
   const mediaHeight = slide.mediaHeight ?? '250px'
+  const mediaPadding = slide.mediaPadding ?? '0.65rem'
   const emphasis =
     typeof slide.emphasis === 'string'
       ? {
@@ -1066,7 +1067,7 @@ function renderContextSplit(slide) {
               border: '1px solid var(--border-subtle)',
               background: 'white',
               height: mediaHeight,
-              padding: '0.65rem',
+              padding: mediaPadding,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -1080,6 +1081,9 @@ function renderContextSplit(slide) {
                 height: '100%',
                 display: 'block',
                 objectFit: slide.media.fit === 'cover' ? 'cover' : 'contain',
+                objectPosition: slide.mediaPosition ?? 'center',
+                transform: `scale(${slide.mediaZoom ?? 1})`,
+                transformOrigin: slide.mediaTransformOrigin ?? 'center center',
               }}
             />
           </div>
@@ -1396,6 +1400,7 @@ function renderRealWorldPanels(slide) {
   const accent = toneColor(slide.phase?.tone ?? slide.tone ?? 'develop')
   const columnCount = Math.min(slide.panels.length, 3)
   const mediaHeight = slide.mediaHeight ?? (columnCount === 3 ? '110px' : '150px')
+  const mediaPadding = slide.mediaPadding ?? '0.55rem'
 
   return (
     <>
@@ -1425,7 +1430,7 @@ function renderRealWorldPanels(slide) {
                 border: '1px solid var(--border-subtle)',
                 background: 'white',
                 height: mediaHeight,
-                padding: '0.55rem',
+                padding: mediaPadding,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -1455,7 +1460,7 @@ function renderRealWorldPanels(slide) {
           </div>
         ))}
       </div>
-      <div className="outcome-callout" style={{ marginTop: '1rem' }}>
+      <div className="outcome-callout" style={{ marginTop: slide.bannerMarginTop ?? '1rem' }}>
         <div className="outcome-label" style={{ color: accent }}>
           Why it matters
         </div>

@@ -434,13 +434,18 @@ function renderPptSafeTitleHero(slide) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '8px',
+              gap: pill.icon ? '8px' : '0px',
               color: 'var(--text-primary)',
-              fontSize: `${toStageFontSize(9)}px`,
+              fontSize: `${toStageFontSize(8.4)}px`,
               fontWeight: 600,
+              textAlign: 'center',
+              lineHeight: 1.15,
+              padding: '0 10px',
             }}
           >
-            <span style={{ fontSize: `${toStageFontSize(10)}px` }}>{pill.icon}</span>
+            {pill.icon ? (
+              <span style={{ fontSize: `${toStageFontSize(10)}px` }}>{pill.icon}</span>
+            ) : null}
             <span>{pill.text}</span>
           </div>
         </StageCard>

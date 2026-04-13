@@ -296,7 +296,9 @@ function addTileGrid(slide, pptx, tiles, options = {}) {
     }
 
     const mediaY = tile.label ? tileY + 0.34 : tileY + 0.18
-    const mediaH = hasMedia ? Math.min(0.72, tileH * 0.34) : 0
+    const mediaH = hasMedia
+      ? (options.mediaHeight ?? Math.min(0.72, tileH * 0.34))
+      : 0
     if (hasMedia) {
       addImageOrPlaceholder(
         slide,
@@ -643,7 +645,7 @@ function renderTitleSlide(slide, pptx, presSlide) {
     presSlide,
     [
       { text: slide.titleParts[0], options: { color: '00B894', bold: true, fontSize: 30 } },
-      { text: '  &  ', options: { color: toPptxColor(theme.colors.textSecondary), fontSize: 22 } },
+      { text: `  ${slide.titleParts[1]}  `, options: { color: toPptxColor(theme.colors.textSecondary), fontSize: 22 } },
       { text: slide.titleParts[2], options: { color: '764BA2', bold: true, fontSize: 30 } },
     ],
     {
@@ -672,12 +674,13 @@ function renderTitleSlide(slide, pptx, presSlide) {
       lineColor: theme.colors.textSecondary,
       lineTransparency: 82,
     })
-    addText(presSlide, `${pill.icon} ${pill.text}`, {
+    const pillText = pill.icon ? `${pill.icon} ${pill.text}` : pill.text
+    addText(presSlide, pillText, {
       x: x + 0.15,
       y: LAYOUT.titleHero.pillY + 0.14,
       w: pillW - 0.3,
       h: 0.18,
-      fontSize: 9,
+      fontSize: 8.4,
       align: 'center',
     })
   })
@@ -723,7 +726,7 @@ function renderTakeawaySlide(slide, pptx, presSlide) {
   )
   const tileFrames = getTileGridFrames(slide.tiles.length, {
     y: LAYOUT.takeaway.tiles.y,
-    h: slide.discovery ? LAYOUT.takeaway.tiles.hWithDiscovery : LAYOUT.takeaway.tiles.h,
+    h: slide.pptxTileHeight ?? (slide.discovery ? LAYOUT.takeaway.tiles.hWithDiscovery : LAYOUT.takeaway.tiles.h),
   })
 
   slide.tiles.forEach((tile, index) => {
@@ -735,6 +738,7 @@ function renderTakeawaySlide(slide, pptx, presSlide) {
       w: frame.w,
       h: frame.h,
       gap: 0,
+      mediaHeight: slide.pptxTileMediaHeight,
     })
   })
 
@@ -1442,14 +1446,14 @@ function renderContextSplit(slide, pptx, presSlide) {
           tone: slide.emphasisTone ?? 'purple',
         }
       : slide.emphasis
-  const mediaX = PAGE.x + 0.15
-  const mediaY = 1.55
-  const mediaW = 5.05
-  const mediaH = 3.55
+  const mediaX = slide.pptxMediaX ?? (PAGE.x + 0.15)
+  const mediaY = slide.pptxMediaY ?? 1.55
+  const mediaW = slide.pptxMediaW ?? 5.05
+  const mediaH = slide.pptxMediaH ?? 3.55
 
   addPhaseHeader(presSlide, pptx, slide)
   addImageOrPlaceholder(presSlide, pptx, slide.media.asset, mediaX, mediaY, mediaW, mediaH, {
-    fit: 'contain',
+    fit: slide.media.fit ?? 'contain',
   })
   addText(presSlide, slide.contextHeading ?? 'Context', {
     x: 6.45,
@@ -2266,8 +2270,8 @@ function renderRealWorldPanels(slide, pptx, presSlide) {
   const gap = panelCount === 3 ? 0.28 : 0.45
   const panelW = (PAGE.w - gap * (panelCount - 1)) / panelCount
   const contentTop = slide.phase ? 1.25 : 1.58
-  const imageY = slide.phase ? 1.5 : 1.88
-  const imageH = panelCount === 3 ? 1.7 : 2.2
+  const imageY = slide.phase ? 1.5 : (slide.pptxImageY ?? 1.88)
+  const imageH = slide.pptxMediaHeight ?? (panelCount === 3 ? 1.7 : 2.2)
   const stepsY = imageY + imageH + 0.18
 
   if (slide.phase) {
@@ -2306,7 +2310,7 @@ function renderRealWorldPanels(slide, pptx, presSlide) {
       color: toPptxColor(accent),
     })
     addImageOrPlaceholder(presSlide, pptx, panel.media.asset, x, imageY, panelW, imageH, {
-      fit: 'contain',
+      fit: panel.media.fit ?? 'contain',
     })
     panel.steps.forEach((step, stepIndex) => {
       const y = stepsY + stepIndex * 0.44
@@ -2324,7 +2328,13 @@ function renderRealWorldPanels(slide, pptx, presSlide) {
       })
     })
   })
-  addEmphasisBox(presSlide, pptx, { label: 'Why it matters:', body: slide.banner, tone: 'green' }, 6.1, 0.58)
+  addEmphasisBox(
+    presSlide,
+    pptx,
+    { label: 'Why it matters:', body: slide.banner, tone: 'green' },
+    slide.pptxBannerY ?? 6.1,
+    0.58,
+  )
 }
 
 function renderSlideByType(pptx, presSlide, slide) {

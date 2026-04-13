@@ -33,12 +33,12 @@ export const assets = {
     'Cursor cloud agents screenshot in the browser',
   ),
   marketplacePlaceholder: imageAsset(
-    'marketplace-placeholder.svg',
-    'Placeholder for a Cursor marketplace screenshot with team-pinned plugins',
+    'marketplace-screenshot.png',
+    'Cursor marketplace screenshot showing team-pinned plugins',
   ),
   claudePluginPlaceholder: imageAsset(
-    'claude-plugin-placeholder.svg',
-    'Placeholder for a Claude Code plugin discovery terminal screenshot',
+    'cli-plugin-directory-screenshot.png',
+    'Cursor CLI plugins directory screenshot in the terminal',
   ),
 }
 
